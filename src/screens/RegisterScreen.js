@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
 import {Input, Button, Text} from 'react-native-elements';
 import {createUserWithEmailAndPassword} from 'firebase/auth';
 import {auth} from '../config/firebase';
@@ -9,6 +9,7 @@ export default function RegisterScreen({navigation}) {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const validatePassword = (password) => {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
@@ -30,55 +31,64 @@ export default function RegisterScreen({navigation}) {
     };
 
     const handleRegister = async () => {
+        setIsLoading(true);
         try {
             let errors = validateForm();
-            if(errors.email){
+            if (errors.email) {
                 setError('Error al registrarse: ' + errors.email);
-            } else if (errors.password){
+            } else if (errors.password) {
                 setError('Error al registrarse: ' + errors.password);
-            } else if (errors.confirmPassword){
+            } else if (errors.confirmPassword) {
                 setError('Error al registrarse: ' + errors.confirmPassword);
-            }else {
+            } else {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 navigation.replace('Home');
             }
         } catch (error) {
             setError('Error al registrarse: ' + error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
     return (
         <View style={styles.container}>
-            <Text h3 style={styles.title}>Registro</Text>
-            <Input
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-            />
-            <Input
-                placeholder="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
-            <Input
-                placeholder="Confirmar Contraseña"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-            />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
-            <Button
-                title="Registrarse"
-                onPress={handleRegister}
-                containerStyle={styles.button}
-            />
-            <Button
-                title="Volver al Login"
-                type="outline"
-                onPress={() => navigation.navigate('Login')}
-                containerStyle={styles.button}
-            />
+            {isLoading ? (
+                <ActivityIndicator size="large" color="#0000ff"/>
+            ) : (
+                <>
+                    <Text h3 style={styles.title}>Registro</Text>
+                    <Input
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                    />
+                    <Input
+                        placeholder="Contraseña"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                    />
+                    <Input
+                        placeholder="Confirmar Contraseña"
+                        value={confirmPassword}
+                        onChangeText={setConfirmPassword}
+                        secureTextEntry
+                    />
+                    {error ? <Text style={styles.error}>{error}</Text> : null}
+                    <Button
+                        title="Registrarse"
+                        onPress={handleRegister}
+                        containerStyle={styles.button}
+                    />
+                    <Button
+                        title="Volver al Login"
+                        type="outline"
+                        onPress={() => navigation.navigate('Login')}
+                        containerStyle={styles.button}
+                    />
+                </>
+            )}
         </View>
     );
 }
