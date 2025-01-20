@@ -8,6 +8,13 @@ export default function LoginScreen({navigation}) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+
+    const validateLoginForm = () => {
+        const isEmailValid = /\S+@\S+\.\S+/.test(email);
+        const isPasswordValid = password.length > 0;
+        return isEmailValid && isPasswordValid;
+    };
+
     const handleLogin = async () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -34,6 +41,7 @@ export default function LoginScreen({navigation}) {
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button
                 title="Iniciar Sesión"
+                disabled={!validateLoginForm()}
                 onPress={handleLogin}
                 containerStyle={styles.button}
             />
