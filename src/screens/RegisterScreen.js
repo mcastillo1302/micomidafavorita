@@ -7,11 +7,41 @@ import {auth} from '../config/firebase';
 export default function RegisterScreen({navigation}) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+
+    const validatePassword = (password) => {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+        return passwordRegex.test(password);
+    };
+
+    const validateForm = () => {
+        let errors = {};
+        if (!email) errors.email = 'El email es requerido';
+        else if (!/\S+@\S+\.\S+/.test(email)) errors.email = 'Email inválido';
+        if (!password) errors.password = 'La contraseña es requerida';
+        else if (!validatePassword(password)) {
+            errors.password = 'La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial';
+        }
+        if (password !== confirmPassword) {
+            errors.confirmPassword = 'Las contraseñas no coinciden';
+        }
+        return errors;
+    };
+
     const handleRegister = async () => {
         try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            navigation.replace('Home');
+            let errors = validateForm();
+            if(errors.email){
+                setError('Error al registrarse: ' + errors.email);
+            } else if (errors.password){
+                setError('Error al registrarse: ' + errors.password);
+            } else if (errors.confirmPassword){
+                setError('Error al registrarse: ' + errors.confirmPassword);
+            }else {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                navigation.replace('Home');
+            }
         } catch (error) {
             setError('Error al registrarse: ' + error.message);
         }
@@ -29,6 +59,12 @@ export default function RegisterScreen({navigation}) {
                 placeholder="Contraseña"
                 value={password}
                 onChangeText={setPassword}
+                secureTextEntry
+            />
+            <Input
+                placeholder="Confirmar Contraseña"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
                 secureTextEntry
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
